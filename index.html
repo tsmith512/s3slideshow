@@ -39,6 +39,8 @@
       width: 100%;
       height: 100vh;
       background: black; /* So preloading images beneath won't show through the letterbox */
+      opacity: 0;
+      transition: opacity 0.8s ease-out;
     }
 
     .slide img {
@@ -49,6 +51,7 @@
 
     .active {
       z-index: 10;
+      opacity: 1;
     }
 
 
@@ -100,21 +103,42 @@
             })
 
           });
-          makeSlides();
+          makeSlide(0);
         }
       });
     }
 
-    function makeSlides() {
-      var slideFirst = document.createElement('div');
-      slideFirst.className = "slide active";
+    function makeSlide(index) {
+      var slideEl = document.createElement('div');
+      slideEl.className = "slide";
+      slideEl.setAttribute('data-index', index);
 
-      var imageFirst = document.createElement('img');
-      imageFirst.setAttribute('src', images[0].src);
-      imageFirst.setAttribute('alt', images[0].filename);
+      var imageEl = document.createElement('img');
+      imageEl.setAttribute('src', images[index].src);
+      imageEl.setAttribute('alt', images[index].filename);
 
-      slideshowContainer.appendChild(slideFirst);
-      slideFirst.appendChild(imageFirst);
+      slideshowContainer.appendChild(slideEl);
+      slideEl.appendChild(imageEl);
+
+      imageEl.addEventListener('load', function () {
+        console.log('img loaded');
+        transitionSlide(slideEl);
+      });
+
+      return slideEl;
+    }
+
+    function transitionSlide(nextSlide) {
+      var oldSlide = document.querySelector('.active.slide') || false;
+      if (oldSlide) {
+        oldSlide.classList.remove('active');
+      }
+      nextSlide.className += ' active';
+    }
+
+    function makeNextSlide() {
+      var nextIndex = (document.querySelector('.active.slide').getAttribute('data-index') + 1) % images.length;
+      var nextSlide = makeSlide(nextIndex);
     }
 
     listObjs();
