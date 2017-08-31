@@ -4,16 +4,64 @@
   <meta charset="UTF-8">
   <title>Test</title>
   <script src="https://sdk.amazonaws.com/js/aws-sdk-2.106.0.min.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      font-size: inherit;
+    }
+
+    body {
+      background: black;
+      font-size: 1em;
+    }
+
+    img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    #slideshow {
+      width: 100;
+      height: 100vh;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 1;
+    }
+
+    .slide {
+      position: absolute;
+      width: 100%;
+      height: 100vh;
+      background: black; /* So preloading images beneath won't show through the letterbox */
+    }
+
+    .slide img {
+      position: relative;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .active {
+      z-index: 10;
+    }
+
+
+  </style>
 </head>
 <body>
-  Hello, world!
-
-  <div id="results"></div>
+  <div id="slideshow"></div>
 
   <script type="text/javascript">
-  var s3 = new AWS.S3;
+    var s3 = new AWS.S3;
     var bucketName = 'tsmith-thirdfloor-pres';
-    var results = document.getElementById('results');
+    var slideshowContainer = document.getElementById('slideshow');
+    var images = [];
     AWS.config.region = 'us-west-1';
 
     var bucket = new AWS.S3({
@@ -40,20 +88,33 @@
         Prefix: 'photos/'
       }, function (err, data) {
         if (err) {
-          results.innerHTML = 'ERROR: ' + err;
+          slideshowContainer.innerHTML = 'ERROR: ' + err;
         } else {
-          console.log(data.Contents);
-          var objKeys = "";
           data.Contents.forEach(function (obj) {
             // Skip the /photos directory and any subfolder keys
             if (!obj.Size) { return; }
 
-            var link = document.location.protocol + '//' + bucketName + '.s3-' + AWS.config.region + '.amazonaws.com/' + obj.Key;
-            objKeys += "<img src='" + link + "'>" + "<br>";
+            images.push({
+              filename: obj.Key,
+              src: document.location.protocol + '//' + bucketName + '.s3-' + AWS.config.region + '.amazonaws.com/' + obj.Key
+            })
+
           });
-          results.innerHTML = objKeys;
+          makeSlides();
         }
       });
+    }
+
+    function makeSlides() {
+      var slideFirst = document.createElement('div');
+      slideFirst.className = "slide active";
+
+      var imageFirst = document.createElement('img');
+      imageFirst.setAttribute('src', images[0].src);
+      imageFirst.setAttribute('alt', images[0].filename);
+
+      slideshowContainer.appendChild(slideFirst);
+      slideFirst.appendChild(imageFirst);
     }
 
     listObjs();
