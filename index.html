@@ -3,8 +3,59 @@
 <head>
   <meta charset="UTF-8">
   <title>Test</title>
+  <script src="https://sdk.amazonaws.com/js/aws-sdk-2.106.0.min.js"></script>
 </head>
 <body>
   Hello, world!
+
+  <div id="results"></div>
+
+  <script type="text/javascript">
+  var s3 = new AWS.S3;
+    var bucketName = 'arn:aws:s3:::tsmith-thirdfloor-pres';
+    var results = document.getElementById('results');
+    AWS.config.region = 'us-west-1';
+
+    var bucket = new AWS.S3({
+      params: {
+        Bucket: bucketName
+      }
+    });
+
+    // See https://github.com/aws/aws-sdk-js/issues/206#issuecomment-30873852
+    // since I'm not going to store credentials in a public facing webpage, and
+    // it's a public access bucket anywhere.
+    function unauthenticatedRequest(operation, params, callback) {
+      var request = s3[operation](params);
+      request.removeListener('validate', AWS.EventListeners.Core.VALIDATE_CREDENTIALS);
+      request.removeListener('sign', AWS.EventListeners.Core.SIGN);
+      request.send(callback);
+    }
+
+    // Taken from http://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/getting-started-browser.html
+    // which lists objects from the bucket, but adapted to use the unauthenticatedRequest above.
+    function listObjs() {
+      unauthenticatedRequest('listObjects', {
+        Bucket: 'tsmith-thirdfloor-pres',
+        Prefix: 'photos/'
+      }, function (err, data) {
+        if (err) {
+          results.innerHTML = 'ERROR: ' + err;
+        } else {
+          console.log(data.Contents);
+          var objKeys = "";
+          data.Contents.forEach(function (obj) {
+            // Skip the /photos directory and any subfolder keys
+            if (!obj.Size) { return; }
+            objKeys += obj.Key + "<br>";
+          });
+          results.innerHTML = objKeys;
+        }
+      });
+    }
+
+    listObjs();
+  </script>
+
 </body>
 </html>
