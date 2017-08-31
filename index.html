@@ -12,7 +12,7 @@
 
   <script type="text/javascript">
   var s3 = new AWS.S3;
-    var bucketName = 'arn:aws:s3:::tsmith-thirdfloor-pres';
+    var bucketName = 'tsmith-thirdfloor-pres';
     var results = document.getElementById('results');
     AWS.config.region = 'us-west-1';
 
@@ -36,7 +36,7 @@
     // which lists objects from the bucket, but adapted to use the unauthenticatedRequest above.
     function listObjs() {
       unauthenticatedRequest('listObjects', {
-        Bucket: 'tsmith-thirdfloor-pres',
+        Bucket: bucketName,
         Prefix: 'photos/'
       }, function (err, data) {
         if (err) {
@@ -47,7 +47,9 @@
           data.Contents.forEach(function (obj) {
             // Skip the /photos directory and any subfolder keys
             if (!obj.Size) { return; }
-            objKeys += obj.Key + "<br>";
+
+            var link = document.location.protocol + '//' + bucketName + '.s3-' + AWS.config.region + '.amazonaws.com/' + obj.Key;
+            objKeys += "<img src='" + link + "'>" + "<br>";
           });
           results.innerHTML = objKeys;
         }
