@@ -209,9 +209,21 @@
     /**
      * Determine the next index (or loop around) and have that slide made.
      */
-    function makeNextSlide() {
+    function makeNextSlide(direction) {
+      // Assume forward
+      if (direction !== -1) {
+        direction = 1;
+      }
+
+      // Make the next index based on the current position
       var currentIndex = document.querySelector('.active.slide').getAttribute('data-index');
-      var nextIndex = (currentIndex + 1) % images.length;
+      var nextIndex = (parseInt(currentIndex) + direction) % images.length;
+      // Modulo won't wrap around a negative number, so if we need to wrap back
+      // around from first to last, add length + [less than zero]
+      if (nextIndex < 0) {
+        nextIndex = images.length + nextIndex;
+      }
+
       makeSlide(nextIndex);
     }
 
@@ -231,6 +243,8 @@
     function init() {
       fetchSlideList();
       resetInterval();
+
+      // Set up listener for keyboard interaction
       document.addEventListener("keydown", function(event) {
         // Look for space, enter, or right arrow
         if ([32, 13, 39].indexOf(event.which) > -1) {
@@ -238,6 +252,11 @@
           // If a transition is already in progress, it doesn't matter because
           // makeNextSlide() will just re-use the slide and display on load, so
           // we can reset the interval immedaitely.
+          resetInterval();
+        }
+        // Right arrow to back up
+        else if (event.which === 37) {
+          makeNextSlide(-1);
           resetInterval();
         }
       });
