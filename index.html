@@ -65,6 +65,7 @@
     var bucketName = 'tsmith-thirdfloor-pres';
     var slideshowContainer = document.getElementById('slideshow');
     var images = [];
+    var slideInterval;
     AWS.config.region = 'us-west-1';
 
     var bucket = new AWS.S3({
@@ -149,7 +150,26 @@
       var nextSlide = makeSlide(nextIndex);
     }
 
+    function resetInterval() {
+      if (slideInterval) {
+        window.clearInterval(slideInterval);
+      }
+      slideInterval = window.setInterval(makeNextSlide, 10000);
+    }
+
+    document.addEventListener("keydown", function(event) {
+      // Look for space, enter, or right arrow
+      if ([32, 13, 39].indexOf(event.which) > -1) {
+        makeNextSlide();
+        // If a transition is already in progress, it doesn't matter because
+        // makeNextSlide() will just re-use the slide and display on load, so
+        // we can reset the interval immedaitely.
+        resetInterval();
+      }
+    });
+
     listObjs();
+    resetInterval();
   </script>
 
 </body>
