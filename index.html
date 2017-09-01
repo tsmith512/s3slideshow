@@ -259,6 +259,17 @@
           makeNextSlide(-1);
           resetInterval();
         }
+        // Press "f" for full screen, if supported
+        else if (event.which === 70) {
+          var body = document.querySelector('body');
+          if (body.mozRequestFullScreen) {
+            body.mozRequestFullScreen();
+          } else if (body.webkitRequestFullScreen) {
+            body.webkitRequestFullScreen();
+          } else if (body.requestFullScreen) {
+            body.requestFullScreen();
+          }
+        }
       });
     }
 
