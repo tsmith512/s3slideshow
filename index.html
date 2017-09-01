@@ -271,6 +271,14 @@
           }
         }
       });
+
+      // Click on the left or right side of the screen to go back or forward
+      document.addEventListener("click", function(event) {
+        // Get a -1 or +1 direction based on click-location over window width
+        var direction = (event.clientX / window.innerWidth) > 0.5 ? 1 : -1;
+        makeNextSlide(direction);
+        resetInterval();
+      });
     }
 
     // And GO!
