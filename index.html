@@ -4,7 +4,17 @@
   <meta charset="UTF-8">
   <title>Test</title>
   <script src="https://sdk.amazonaws.com/js/aws-sdk-2.106.0.min.js"></script>
-
+  <script>
+    /**
+     * Set the S3 bucket name, prefix (if your images are in a subfolder), and
+     * S3 region in this object. Code edits below are not necessary.
+     */
+    var s3sconfig = {
+      bucketName: 'tsmith-thirdfloor-pres',
+      bucketPrefix: 'photos/',
+      awsRegion: 'us-west-1'
+    };
+  </script>
   <style>
     * {
       margin: 0;
@@ -97,9 +107,9 @@
 
     // AWS/S3 Stuff
     var s3 = new AWS.S3;
-    var bucketName = 'tsmith-thirdfloor-pres';
-    var bucketPrefix = 'photos/';
-    AWS.config.region = 'us-west-1';
+    var bucketName = s3sconfig.bucketName;
+    var bucketPrefix = s3sconfig.bucketPrefix;
+    AWS.config.region = s3sconfig.awsRegion;
 
     // Other variables shared by these functions
     var slideshowContainer = document.getElementById('slideshow');
