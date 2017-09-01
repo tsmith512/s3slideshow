@@ -53,26 +53,23 @@
       z-index: 10;
       opacity: 1;
     }
-
-
   </style>
 </head>
 <body>
   <div id="slideshow"></div>
 
   <script type="text/javascript">
+  (function(){
+
+    // AWS/S3 Stuff
     var s3 = new AWS.S3;
     var bucketName = 'tsmith-thirdfloor-pres';
+    AWS.config.region = 'us-west-1';
+
+    // Other variables shared by these functions
     var slideshowContainer = document.getElementById('slideshow');
     var images = [];
     var slideInterval;
-    AWS.config.region = 'us-west-1';
-
-    var bucket = new AWS.S3({
-      params: {
-        Bucket: bucketName
-      }
-    });
 
     // See https://github.com/aws/aws-sdk-js/issues/206#issuecomment-30873852
     // since I'm not going to store credentials in a public facing webpage, and
@@ -84,9 +81,14 @@
       request.send(callback);
     }
 
-    // Taken from http://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/getting-started-browser.html
-    // which lists objects from the bucket, but adapted to use the unauthenticatedRequest above.
-    function listObjs() {
+    /**
+     * Fetch the list of images from S3, compile the list of slides, and kick
+     * off the first slide transition.
+     *
+     * Adapted from http://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/getting-started-browser.html
+     * but using the unauthenticatedRequest above.
+     */
+    function fetchSlideList() {
       unauthenticatedRequest('listObjects', {
         Bucket: bucketName,
         Prefix: 'photos/'
@@ -109,26 +111,40 @@
       });
     }
 
+    /**
+     * Create or identify-and-reuse a slide for a given index.
+     *
+     * @param {int} index - The 0-based index of the image to display
+     */
     function makeSlide(index) {
-      var slideEl = document.querySelector('div[data-index="' + index + '"]');
+      // Can we re-use an existing element?
+      var slideEl = document.querySelector('div[data-index="' + index + '"]') || false;
+      var imageEl;
+
+      // Didn't find it? Build it.
       if (!slideEl) {
-        var slideEl = document.createElement('div');
+        slideEl = document.createElement('div');
         slideEl.className = "slide";
         slideEl.setAttribute('data-index', index);
 
-        var imageEl = document.createElement('img');
+        imageEl = document.createElement('img');
         imageEl.setAttribute('src', images[index].src);
         imageEl.setAttribute('alt', images[index].filename);
 
         slideshowContainer.appendChild(slideEl);
         slideEl.appendChild(imageEl);
-      } else {
-        var imageEl = slideEl.children[0];
+      }
+      else {
+        // We're reusing a slide, so identify the image that exists in it.
+        imageEl = slideEl.querySelector('img');
       }
 
+      // Now assign the transition: if the image is already loaded, just show
+      // the slide, otherwise wait on the image's load event.
       if (imageEl.complete) {
         transitionSlide(slideEl);
-      } else {
+      }
+      else {
         imageEl.addEventListener('load', function () {
           transitionSlide(slideEl);
         });
@@ -137,6 +153,12 @@
       return slideEl;
     }
 
+    /**
+     * Crossfade the active and next slides. Fired as event handler for slide
+     * image loaded (or immediately if the next slide't image was already loaded)
+     *
+     * @param {element} nextSlide - the next slide to show
+     */
     function transitionSlide(nextSlide) {
       var oldSlide = document.querySelector('.active.slide') || false;
       if (oldSlide) {
@@ -145,11 +167,18 @@
       nextSlide.className += ' active';
     }
 
+    /**
+     * Determine the next index (or loop around) and have that slide made.
+     */
     function makeNextSlide() {
-      var nextIndex = (document.querySelector('.active.slide').getAttribute('data-index') + 1) % images.length;
-      var nextSlide = makeSlide(nextIndex);
+      var currentIndex = document.querySelector('.active.slide').getAttribute('data-index');
+      var nextIndex = (currentIndex + 1) % images.length;
+      makeSlide(nextIndex);
     }
 
+    /**
+     * Set or reset the window interval that fires the auto-rotator.
+     */
     function resetInterval() {
       if (slideInterval) {
         window.clearInterval(slideInterval);
@@ -157,19 +186,27 @@
       slideInterval = window.setInterval(makeNextSlide, 10000);
     }
 
-    document.addEventListener("keydown", function(event) {
-      // Look for space, enter, or right arrow
-      if ([32, 13, 39].indexOf(event.which) > -1) {
-        makeNextSlide();
-        // If a transition is already in progress, it doesn't matter because
-        // makeNextSlide() will just re-use the slide and display on load, so
-        // we can reset the interval immedaitely.
-        resetInterval();
-      }
-    });
+    /**
+     * Init the slideshow.
+     */
+    function init() {
+      fetchSlideList();
+      resetInterval();
+      document.addEventListener("keydown", function(event) {
+        // Look for space, enter, or right arrow
+        if ([32, 13, 39].indexOf(event.which) > -1) {
+          makeNextSlide();
+          // If a transition is already in progress, it doesn't matter because
+          // makeNextSlide() will just re-use the slide and display on load, so
+          // we can reset the interval immedaitely.
+          resetInterval();
+        }
+      });
+    }
 
-    listObjs();
-    resetInterval();
+    // And GO!
+    init();
+  })();
   </script>
 
 </body>
