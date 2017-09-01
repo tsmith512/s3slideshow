@@ -93,7 +93,7 @@
   <div id="slideshow"></div>
 
   <script type="text/javascript">
-  (function(){
+  (function () {
 
     // AWS/S3 Stuff
     var s3 = new AWS.S3;
@@ -109,7 +109,7 @@
     // See https://github.com/aws/aws-sdk-js/issues/206#issuecomment-30873852
     // since I'm not going to store credentials in a public facing webpage, and
     // it's a public access bucket anywhere.
-    function unauthenticatedRequest(operation, params, callback) {
+    function unauthenticatedRequest (operation, params, callback) {
       var request = s3[operation](params);
       request.removeListener('validate', AWS.EventListeners.Core.VALIDATE_CREDENTIALS);
       request.removeListener('sign', AWS.EventListeners.Core.SIGN);
@@ -155,7 +155,7 @@
      *
      * @param {int} index - The 0-based index of the image to display
      */
-    function makeSlide(index) {
+    function makeSlide (index) {
       // Can we re-use an existing element?
       var slideEl = document.querySelector('div[data-index="' + index + '"]') || false;
       var imageEl;
@@ -198,7 +198,7 @@
      *
      * @param {element} nextSlide - the next slide to show
      */
-    function transitionSlide(nextSlide) {
+    function transitionSlide (nextSlide) {
       var oldSlide = document.querySelector('.active.slide') || false;
       if (oldSlide) {
         oldSlide.classList.remove('active');
@@ -209,7 +209,7 @@
     /**
      * Determine the next index (or loop around) and have that slide made.
      */
-    function makeNextSlide(direction) {
+    function makeNextSlide (direction) {
       // Assume forward
       if (direction !== -1) {
         direction = 1;
@@ -230,7 +230,7 @@
     /**
      * Set or reset the window interval that fires the auto-rotator.
      */
-    function resetInterval() {
+    function resetInterval () {
       if (slideInterval) {
         window.clearInterval(slideInterval);
       }
@@ -240,12 +240,12 @@
     /**
      * Init the slideshow.
      */
-    function init() {
+    function init () {
       fetchSlideList();
       resetInterval();
 
       // Set up listener for keyboard interaction
-      document.addEventListener("keydown", function(event) {
+      document.addEventListener("keydown", function (event) {
         // Look for space, enter, or right arrow
         if ([32, 13, 39].indexOf(event.which) > -1) {
           makeNextSlide();
@@ -273,7 +273,7 @@
       });
 
       // Click on the left or right side of the screen to go back or forward
-      document.addEventListener("click", function(event) {
+      document.addEventListener("click", function (event) {
         // Get a -1 or +1 direction based on click-location over window width
         var direction = (event.clientX / window.innerWidth) > 0.5 ? 1 : -1;
         makeNextSlide(direction);
