@@ -68,6 +68,7 @@
     // AWS/S3 Stuff
     var s3 = new AWS.S3;
     var bucketName = 'tsmith-thirdfloor-pres';
+    var bucketPrefix = 'photos/';
     AWS.config.region = 'us-west-1';
 
     // Other variables shared by these functions
@@ -95,7 +96,7 @@
     function fetchSlideList() {
       unauthenticatedRequest('listObjects', {
         Bucket: bucketName,
-        Prefix: 'photos/'
+        Prefix: bucketPrefix
       }, function (err, data) {
         if (err) {
           slideshowContainer.innerHTML = 'ERROR: ' + err;
